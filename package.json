@@ -1,16 +1,17 @@
 {
   "name": "little-p-webhook",
   "version": "1.0.0",
-  "description": "Little P. Farcaster Webhook Bot using Neynar SDK",
+  "description": "Little P. Farcaster bot using Neynar API and OpenAI",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "@neynar/nodejs-sdk": "^1.0.0",
-    "express": "^4.18.2",
+    "axios": "^1.6.0",
     "dotenv": "^16.0.3",
-    "axios": "^1.6.0"
+    "express": "^4.18.2",
+    "ethers": "^6.6.0"
   },
   "engines": {
     "node": "20.x"

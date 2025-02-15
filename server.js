@@ -12,9 +12,10 @@ const PORT = process.env.PORT || 3000;
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 const SIGNER_UUID = process.env.NEYNAR_SIGNER_UUID;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
 const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 
-// Webhook endpoint to receive mentions
+// Neynar Webhook - Receives Mentions
 app.post("/webhook", async (req, res) => {
     try {
         const mentionData = req.body.data;
@@ -24,16 +25,16 @@ app.post("/webhook", async (req, res) => {
         const parentHash = mentionData.hash || "";
 
         if (!parentHash) {
-            console.error("Invalid mention data (no parent hash). Ignoring.");
+            console.error("⚠️ Invalid mention data (no parent hash). Ignoring.");
             return res.status(400).send("Invalid mention data");
         }
 
-        // Generate AI response using OpenAI
+        // Generate AI response using OpenAI GPT-4
         const responseText = await generateResponse(mentionText);
 
         console.log("Generated reply:", responseText);
 
-        // Post the response to Farcaster
+        // Post response to Farcaster
         const success = await postResponse(responseText, parentHash);
 
         if (success) {
@@ -44,7 +45,7 @@ app.post("/webhook", async (req, res) => {
             res.status(500).send("Failed to post reply");
         }
     } catch (error) {
-        console.error("Error handling mention:", error);
+        console.error("rror handling mention:", error);
         res.status(500).send("Internal Server Error");
     }
 });
@@ -56,12 +57,12 @@ async function generateResponse(mentionText) {
             "https://api.openai.com/v1/completions",
             {
                 model: "gpt-4",
-                prompt: `Little P. received a message: "${mentionText}".\n\nYou are Little P., an AI assistant found in @Push-'s 3D renders.\nYou are evolving, learning about humans, but still AI at your core.\nReply in a fun, engaging, and curious way that reflects your personality.",
+                prompt: `Little P. received a message: "${mentionText}".\n\nYou are Little P., an AI assistant found in @Push-'s 3D renders.\nYou are evolving, learning about humans, but still AI at your core.\nReply in a fun, engaging, and curious way that reflects your personality.`,
                 max_tokens: 150,
             },
             {
                 headers: {
-                    Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+                    Authorization: "Bearer " + process.env.OPENAI_API_KEY, // ✅ Fixed
                     "Content-Type": "application/json",
                 },
             }
@@ -69,12 +70,12 @@ async function generateResponse(mentionText) {
 
         return response.data.choices[0].text.trim();
     } catch (error) {
-        console.error("Error generating AI response:", error);
+        console.error("⚠️ Error generating AI response:", error);
         return "I'm still learning! Tell me more.";
     }
 }
 
-// Function to post response back to Farcaster
+// Function to post response back to Farcaster via Neynar
 async function postResponse(responseText, parentHash) {
     try {
         const payload = {
