@@ -7,10 +7,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@neynar/nodejs-sdk": "^latest",
-    "express": "^latest",
-    "dotenv": "^latest",
-    "axios": "^latest"
+    "@neynar/nodejs-sdk": "^1.0.0",
+    "express": "^1.0.0",
+    "dotenv": "^1.0.0",
+    "axios": "^1.0.0"
   },
   "engines": {
     "node": ">=16"
