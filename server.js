@@ -1,13 +1,16 @@
 // Import required modules
 const express = require("express");
-const axios = require("axios");
 const dotenv = require("dotenv");
-dotenv.config();
+const { NeynarAPIClient } = require("@neynar/nodejs-sdk");
 
+dotenv.config();
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
+const SIGNER_UUID = process.env.NEYNAR_SIGNER_UUID;
+const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 
 // Webhook endpoint to receive mentions
 app.post("/webhook", async (req, res) => {
@@ -38,22 +41,12 @@ app.post("/webhook", async (req, res) => {
 // Function to generate AI response using GPT-4
 async function generateResponse(mentionText) {
     try {
-        const openaiResponse = await axios.post(
-            "https://api.openai.com/v1/completions",
-            {
-                model: "gpt-4",
-                prompt: `Little P. received a message: "${mentionText}".\n\nYou are Little P., an AI assistant found in @Push-'s 3D renders.\nYou are evolving, learning about humans, but still AI at your core.\nReply in a fun, engaging, and curious way that reflects your personality.`,
-                max_tokens: 150,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-
-        return openaiResponse.data.choices[0].text.trim();
+        const response = await neynarClient.postAICompletion({
+            prompt: `Little P. received a message: "${mentionText}".\n\nYou are Little P., an AI assistant found in @Push-'s 3D renders.\nYou are evolving, learning about humans, but still AI at your core.\nReply in a fun, engaging, and curious way that reflects your personality.`,
+            model: "gpt-4",
+            max_tokens: 150,
+        });
+        return response.choices[0].text.trim();
     } catch (error) {
         console.error("Error generating AI response:", error);
         return "I'm still learning! Tell me more.";
@@ -63,20 +56,12 @@ async function generateResponse(mentionText) {
 // Function to post response back to Farcaster
 async function postResponse(responseText, parentHash) {
     try {
-        await axios.post(
-            "https://api.neynar.com/v2/farcaster/cast",
-            {
-                signer_uuid: process.env.NEYNAR_SIGNER_UUID,
-                text: responseText,
-                parent: parentHash,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.NEYNAR_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        await neynarClient.publishCast({
+            signerUuid: SIGNER_UUID,
+            text: responseText,
+            parent: parentHash,
+        });
+        console.log("Successfully posted to Farcaster");
     } catch (error) {
         console.error("Error posting response to Farcaster:", error);
     }
