@@ -18,33 +18,33 @@ const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 app.post("/webhook", async (req, res) => {
     try {
         const mentionData = req.body.data;
-        console.log("📩 New mention received:", mentionData);
+        console.log("New mention received:", mentionData);
 
         const mentionText = mentionData.text || "";
         const parentHash = mentionData.hash || "";
 
         if (!parentHash) {
-            console.error("⚠️ Invalid mention data (no parent hash). Ignoring.");
+            console.error("Invalid mention data (no parent hash). Ignoring.");
             return res.status(400).send("Invalid mention data");
         }
 
         // Generate AI response using OpenAI
         const responseText = await generateResponse(mentionText);
 
-        console.log("💬 Generated reply:", responseText);
+        console.log("Generated reply:", responseText);
 
         // Post the response to Farcaster
         const success = await postResponse(responseText, parentHash);
 
         if (success) {
-            console.log("✅ Reply successfully posted!");
+            console.log("Reply successfully posted!");
             res.status(200).send("Reply posted successfully!");
         } else {
-            console.error("❌ Failed to post reply!");
+            console.error("Failed to post reply!");
             res.status(500).send("Failed to post reply");
         }
     } catch (error) {
-        console.error("🔥 Error handling mention:", error);
+        console.error("Error handling mention:", error);
         res.status(500).send("Internal Server Error");
     }
 });
@@ -61,7 +61,7 @@ async function generateResponse(mentionText) {
             },
             {
                 headers: {
-                    Authorization: "Bearer " + process.env.OPENAI_API_KEY, // ✅ Fixed
+                    Authorization: "Bearer " + process.env.OPENAI_API_KEY,
                     "Content-Type": "application/json",
                 },
             }
@@ -69,7 +69,7 @@ async function generateResponse(mentionText) {
 
         return response.data.choices[0].text.trim();
     } catch (error) {
-        console.error("⚠️ Error generating AI response:", error);
+        console.error("Error generating AI response:", error);
         return "I'm still learning! Tell me more.";
     }
 }
@@ -83,19 +83,19 @@ async function postResponse(responseText, parentHash) {
             parent: parentHash,
         };
 
-        console.log("📡 Sending request to Neynar API:", payload);
+        console.log("Sending request to Neynar API:", payload);
 
         const result = await neynarClient.publishCast(payload);
 
-        console.log("✅ Successfully posted to Farcaster:", result);
+        console.log("Successfully posted to Farcaster:", result);
         return true;
     } catch (error) {
-        console.error("🚨 Error posting response to Farcaster:", error.response?.data || error);
+        console.error("Error posting response to Farcaster:", error.response?.data || error);
         return false;
     }
 }
 
 // Start the server with correct port binding for Render
 app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log("Server running on port " + PORT);
 });
