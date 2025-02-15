@@ -15,34 +15,25 @@ const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 // Webhook endpoint to receive mentions
 app.post("/webhook", async (req, res) => {
     try {
-        const mentionData = req.body.data; // Ensure correct structure
-        console.log("📩 New mention received:", mentionData);
+        const mentionData = req.body;
+        console.log("New mention received:", mentionData);
 
         const mentionText = mentionData.text || "";
         const parentHash = mentionData.hash || "";
 
         if (!parentHash) {
-            console.error("⚠️ Invalid mention data (no parent hash). Ignoring.");
             return res.status(400).send("Invalid mention data");
         }
 
         // Generate AI response
         const responseText = await generateResponse(mentionText);
 
-        console.log("💬 Generated reply:", responseText); // ✅ Added logging
-
         // Post the response to Farcaster
-        const success = await postResponse(responseText, parentHash);
+        await postResponse(responseText, parentHash);
 
-        if (success) {
-            console.log("✅ Reply successfully posted!");
-            res.status(200).send("Reply posted successfully!");
-        } else {
-            console.error("❌ Failed to post reply!");
-            res.status(500).send("Failed to post reply");
-        }
+        res.status(200).send("Reply posted successfully!");
     } catch (error) {
-        console.error("🔥 Error handling mention:", error);
+        console.error("Error handling mention:", error);
         res.status(500).send("Internal Server Error");
     }
 });
@@ -55,10 +46,9 @@ async function generateResponse(mentionText) {
             model: "gpt-4",
             max_tokens: 150,
         });
-
         return response.choices[0].text.trim();
     } catch (error) {
-        console.error("⚠️ Error generating AI response:", error);
+        console.error("Error generating AI response:", error);
         return "I'm still learning! Tell me more.";
     }
 }
@@ -66,21 +56,18 @@ async function generateResponse(mentionText) {
 // Function to post response back to Farcaster
 async function postResponse(responseText, parentHash) {
     try {
-        const result = await neynarClient.publishCast({
+        await neynarClient.publishCast({
             signerUuid: SIGNER_UUID,
             text: responseText,
             parent: parentHash,
         });
-
-        console.log("✅ Successfully posted to Farcaster:", result);
-        return true;
+        console.log("Successfully posted to Farcaster");
     } catch (error) {
-        console.error("🚨 Error posting response to Farcaster:", error);
-        return false;
+        console.error("Error posting response to Farcaster:", error);
     }
 }
 
 // Start the server with correct port binding for Render
 app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+    console.log(`Server running on port ${PORT}`);
+}); 
