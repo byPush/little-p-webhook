@@ -1,14 +1,18 @@
 {
   "name": "little-p-webhook",
   "version": "1.0.0",
-  "description": "A webhook server for Little P.",
+  "description": "Little P. Farcaster Webhook Bot using Neynar SDK",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.4.0",
-    "dotenv": "^16.0.3"
+    "@neynar/nodejs-sdk": "^latest",
+    "express": "^latest",
+    "dotenv": "^latest",
+    "axios": "^latest"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }
