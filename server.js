@@ -61,7 +61,7 @@ async function generateResponse(mentionText) {
             },
             {
                 headers: {
-                    Authorization: `Bearer ${OPENAI_API_KEY}`,
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, // ✅ Fixed
                     "Content-Type": "application/json",
                 },
             }
